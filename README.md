@@ -1,6 +1,7 @@
 #CYCLOP++ Frickler Version
 
 forked from Dvogonen/cyclop_plus CYCLOP+ v1.4
+
 Changes: 
 * skip channels by band/channel instead of frequency. 
 * modified button behaviour: doubleclick changes band, single click changes channel.
