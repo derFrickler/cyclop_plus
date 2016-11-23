@@ -1,4 +1,11 @@
-#CYCLOP+ v1.4
+#CYCLOP++ Frickler Version
+
+forked from Dvogonen/cyclop_plus CYCLOP+ v1.4
+Changes: 
+* skip channels by band/channel instead of frequency. 
+* modified button behaviour: doubleclick changes band, single click changes channel.
+* small change on screen layout to better fit yellow/blue oleds.
+
 
 ###Introduction and Functions
 The major function of this project (CYCLOP+) is to add the ability to manually select channels using only the standard button on the receiver of the Quanum Cyclops.
@@ -136,8 +143,8 @@ When it goes black again the programming is done and the board can be mounted in
 - The settings are saved when the Exit option is selected. All changes are lost if the battery is disconnected before Exit has been selected.
 
 ###Use CYCLOP+
-- A single click jumps up in frequency to the closest channel among the 40 available.
-- A double click jumps down in frequency
+- A single click changes channel inside the selected band 123...8123...
+- A double click changes band ABEFRAB...
 - A long click (0.6 - 2 seconds) triggers a autoscan for the best channel, just like a single click does in the original firmware.
 - A long-long click (> 2 seconds) triggers a manual frequency scanner. The receiver will start cycling through all channels quickly. Hold down the button again when the channel you want to use flickers onto the main display.
 
