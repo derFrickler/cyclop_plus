@@ -1,7 +1,18 @@
 /*******************************************************************************
+  CYCLOP++ Frickler Version
+
+forked from Dvogonen/cyclop_plus CYCLOP+ v1.4
+
+Changes:
+
+    skip channels by band/channel instead of frequency.
+    modified button behaviour: doubleclick changes band, single click changes channel.
+    small change on screen layout to better fit yellow/blue oleds.
+
+  
   CYCLOP+ brings OLED support and manual channel selection to the
   HobbyKing Quanum Cyclops FPV googles.
-
+  
   The rx5808-pro and rx5808-pro-diversity projects served as a starting
   point for the code base, even if little of the actual code remains.
   Without those projects CYCLOP+ would not have been created. All possible
@@ -43,7 +54,7 @@
 #include <Adafruit_SSD1306.h>
 #endif
 #ifdef SH1106_OLED_DRIVER
-#include "libraries/adafruit_sh1106/Adafruit_SH1106.h"
+#include <Adafruit_SH1106.h>
 #endif
 #include <Adafruit_GFX.h>
 
@@ -81,13 +92,16 @@ void     writeEeprom(void);
 //* Direct access via array operations does not work since data is stored in
 //* flash, not in RAM. Use getPosition to retrieve data
 
-const uint8_t positions[] PROGMEM = {
-  19, 18, 32, 17, 33, 16,  7, 34,  8, 24,  6,  9, 25,  5, 35, 10, 26,  4, 11, 27,
-  3, 36, 12, 28,  2, 13, 29, 37,  1, 14, 30,  0, 15, 31, 38, 20, 21, 39, 22, 23
-};
-
+//const uint8_t positions[] PROGMEM = {
+//  19, 18, 32, 17, 33, 16,  7, 34,  8, 24,  6,  9, 25,  5, 35, 10, 26,  4, 11, 27,
+//  3, 36, 12, 28,  2, 13, 29, 37,  1, 14, 30,  0, 15, 31, 38, 20, 21, 39, 22, 23
+//};
+//
+//uint16_t getPosition( uint8_t channel ) {
+//  return pgm_read_byte_near(positions + channel);
+//}
 uint16_t getPosition( uint8_t channel ) {
-  return pgm_read_byte_near(positions + channel);
+  return channel;
 }
 
 //******************************************************************************
@@ -213,13 +227,15 @@ void loop()
       break;
 
     case SINGLE_CLICK: // up the frequency
-      currentChannel = nextChannel( currentChannel );
+      //currentChannel = nextChannel( currentChannel );
+      currentChannel = nextChannelInBand( currentChannel );
       setRTC6715Frequency(getFrequency(currentChannel));
       drawChannelScreen(currentChannel, 0);
       break;
 
     case DOUBLE_CLICK:  // down the frequency
-      currentChannel = previousChannel( currentChannel );
+      //currentChannel = previousChannel( currentChannel );
+      currentChannel = nextBand( currentChannel );
       setRTC6715Frequency(getFrequency(currentChannel));
       drawChannelScreen(currentChannel, 0);
       break;
@@ -346,6 +362,28 @@ uint8_t getClickType(uint8_t buttonPin) {
     while (digitalRead(buttonPin) == BUTTON_PRESSED) ;
   }
   return (click_type);
+}
+
+//******************************************************************************
+//* function: nextBand
+//******************************************************************************
+uint8_t nextBand(uint8_t channel)
+{
+  if ((channel+8) > CHANNEL_MAX)
+    return CHANNEL_MIN;
+  else
+    return (channel/8 + 1) * 8;
+}
+
+//******************************************************************************
+//* function: nextChannelInBand
+//******************************************************************************
+uint8_t nextChannelInBand(uint8_t channel)
+{
+  if (channel%8 == 7)
+    return channel - 7;
+  else
+    return channel + 1;
 }
 
 //******************************************************************************
@@ -870,10 +908,10 @@ void drawChannelScreen( uint8_t channel, uint16_t rssi) {
 
   display.clearDisplay();
   display.setTextColor(WHITE);
-  display.setCursor(10, 0);
-  display.setTextSize(3);
+  display.setCursor(20, 2);
+  display.setTextSize(2);
   display.print(getFrequency(channel));
-  display.setCursor(75, 7);
+  display.setCursor(65, 2);
   display.setTextSize(2);
   display.print(F(" MHz"));
   display.drawLine(0, 24, 127, 24, WHITE);
@@ -905,10 +943,10 @@ void drawChannelScreen( uint8_t channel, uint16_t rssi) {
 void drawAutoScanScreen( void ) {
   display.clearDisplay();
   display.setTextColor(WHITE);
-  display.setCursor(10, 0);
-  display.setTextSize(3);
+  display.setCursor(20, 2);
+  display.setTextSize(2);
   display.print(F("SCAN"));
-  display.setCursor(75, 7);
+  display.setCursor(65, 2);
   display.setTextSize(2);
   display.print(F(" MHz"));
   display.drawLine(0, 24, 127, 24, WHITE);
