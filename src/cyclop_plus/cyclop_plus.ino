@@ -167,7 +167,9 @@ void setup()
 
   // Read current channel and options data from EEPROM
   if (!readEeprom()) {
-    currentChannel = CHANNEL_MIN;
+    // TIM
+    currentChannel = 18;
+    //currentChannel = CHANNEL_MIN;
     resetOptions();
   }
 
@@ -181,10 +183,11 @@ void setup()
 #ifdef SH1106_OLED_DRIVER
   display.begin(SH1106_SWITCHCAPVCC, OLED_I2C_ADR);
 #endif
-  display.clearDisplay();
+  //display.clearDisplay();
   if (options[FLIP_SCREEN_OPTION])
     display.setRotation(2);
-  display.display();
+  //display.display();
+  //delay(3000);
 
   // Set Options
   if (digitalRead(BUTTON_PIN) == BUTTON_PRESSED ) {
@@ -703,14 +706,8 @@ void spiEnableHigh()
 }
 
 //******************************************************************************
-//* function: batteryMeter
-//*         : Measured voltage values
-//*         : 3s LiPo
-//*         : max = 4.2v * 3 = 12.6v = 643
-//*         : min = 3.6v * 3 = 10.8v = 551
-//*         : 2s LiPo
-//*         : max = 4.2v * 2 = 8.4v = 429
-//*         : min = 3.6v * 2 = 7.2v = 367
+//* function: batteryMeter   Divider 1:4, max volts = 2000mV
+//*         
 //******************************************************************************
 void batteryMeter( void )
 {
@@ -724,21 +721,27 @@ void batteryMeter( void )
     return;
 
   if (options[LIPO_3S_METER_OPTION]) {
-    minV = 551;
-    maxV = 643;
+    minV = 9900;
+    maxV = 1260;
   }
   if (options[LIPO_2S_METER_OPTION]) {
-    minV = 367;
-    maxV = 429;
+    minV = 660;
+    maxV = 840;
   }
   voltage = averageAnalogRead(VOLTAGE_METER_PIN);
+
+  // map to 0-2000mV + calibration
+  voltage = map(voltage, 0, 1023, 0, 2035);
+
+  // enable for debugging
+  //display.print(" ");display.print( voltage );display.print("V");
 
   if (voltage >= maxV)
     value = 99;
   else if (voltage <= minV)
     value = 0;
   else
-    value = (uint8_t)((voltage - minV) / (float)(maxV - minV) * 100.0);
+    value = map(voltage, minV, maxV, 0, 100);
 
   // Set alarm periods
   if (value < 5)
@@ -751,7 +754,7 @@ void batteryMeter( void )
     alarmOnPeriod = ALARM_MED_ON;
     alarmOffPeriod = ALARM_MED_OFF;
   }
-  else if (value < 25)
+  else if (value < 20)
   {
     alarmOnPeriod = ALARM_MIN_ON;
     alarmOffPeriod = ALARM_MIN_OFF;
@@ -1019,6 +1022,7 @@ void drawBattery(uint8_t xPos, uint8_t yPos, uint8_t value ) {
     display.drawRect(3 + xPos, 17 + yPos, 4, 2, WHITE);
 }
 
+
 //******************************************************************************
 //* function: drawOptionsScreen
 //******************************************************************************
@@ -1076,4 +1080,3 @@ void drawEmptyScreen( void)
   display.clearDisplay();
   display.display();
 }
-
